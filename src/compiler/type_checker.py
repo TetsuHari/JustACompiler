@@ -70,6 +70,7 @@ def typecheck(node: ast.Expression, symtab: SymTab = top_level_SymTab) -> Type:
         case ast.VarDeclaration():
             expr_type = typecheck(node.expression, symtab)
             symtab.locals[node.identifier.name] = expr_type
+            ident_type = typecheck(node.identifier, symtab)
             retVal = expr_type
 
         case ast.Branch():
