@@ -1,5 +1,6 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from compiler.tokenizer import Location, L
+from compiler.types import Unit, Type
 
 
 @dataclass
@@ -7,6 +8,7 @@ class Expression:
     """Base class for AST nodes representing expressions."""
 
     location: Location
+    type: Type = field(kw_only=True, default=Unit())
 
 
 @dataclass
@@ -83,7 +85,6 @@ class VarDeclaration(Expression):
 class TypedVarDeclaration(Expression):
     identifier: Identifier
     expression: Expression
-    type: str
 
 
 @dataclass
