@@ -50,7 +50,7 @@ class Token:
     location: Location
 
 
-identifierR = r"(?P<identifier>(?:_|[a-z]|[A-Z])(?:[a-z]|[A-Z]|[0-9])*)"
+identifierR = r"(?P<identifier>(?:_|[a-z]|[A-Z])(?:_|[a-z]|[A-Z]|[0-9])*)"
 int_lit = r"(?P<int_lit>[0-9]+)"
 bool_lit = r"(?P<bool_lit>true|false)"
 operator = r"(?P<operator>==|!=|<=|>=|\+|\-|\*|\/|=|<|>|%|or|and|not)"

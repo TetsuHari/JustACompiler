@@ -189,7 +189,7 @@ def parse(tokens: list[Token]) -> ast.Expression:
 
                     operator = consume()
 
-                    #    print(f"Operator consumed: {operator.text}")
+                    # print(f"Operator consumed: {operator.text}")
 
                     if isinstance(left, ast.Identifier):
                         right = ast.Assignment(
@@ -207,23 +207,14 @@ def parse(tokens: list[Token]) -> ast.Expression:
                 statements: list[ast.Expression | None] = [term]
                 while top_level_call and peek().text == ";":
                     consume(";")
-                    print(
-                        f"Current term is {term}, top_level?: {top_level_call}, block?: {block_call}"
-                    )
-                    statements.append(
-                        parse_expression(
-                            top_level_call=top_level_call, block_call=block_call
-                        )
-                    )
+                    statements.append(parse_expression(top_level_call, block_call))
 
-                    print(f"Term is currently {term}, \n statements are {statements}")
+                # #print(f'Term is currently {term}, \n statements are {statements}')
 
-                    print(f"Current peek is: {peek()}")
+                # #print(f"Current peek is: {peek()}")
 
-                    print(f"In a toplevel call? {top_level_call}")
-                    print(
-                        f"Peek is: {peek().text} it it not allowed in non-top-level call: {peek().text not in ["", ";", ")", "}", "then", "else", "do"]}"
-                    )
+                # #print(f"In a toplevel call? {top_level_call}")
+                # #print(f"Peek is: {peek().text} it it not allowed in non-top-level call: {peek().text not in ["", ";", ")", "}", "then", "else", "do"]}")
                 if (
                     peek().text not in ["", ",", ";", ")", "}", "then", "else", "do"]
                     and not top_level_call
@@ -254,7 +245,7 @@ def parse(tokens: list[Token]) -> ast.Expression:
                 while peek().text in left_associative_binary[l]:
                     operator = consume()
 
-                    #    print(f"Operator consumed: {operator.text}")
+                    # print(f"Operator consumed: {operator.text}")
 
                     right = parse_expression(l + 1)
 
@@ -269,7 +260,7 @@ def parse(tokens: list[Token]) -> ast.Expression:
             case 8:
                 while peek().text in ["-", "not"]:
                     operator = consume()
-                    #    print(f"Operator consumed: {operator.text}")
+                    # print(f"Operator consumed: {operator.text}")
 
                     term = ast.UnaryOp(
                         location=operator.location,
@@ -311,7 +302,9 @@ def parse(tokens: list[Token]) -> ast.Expression:
         #    f"On level {precedence_level} and toplevel? = {top_level_call}. \n Returning {toReturn} \n\n\n"
         # )
         return (
-            toReturn if toReturn is not None else ast.Literal(lookback().location, None)
+            toReturn
+            if toReturn is not None
+            else ast.Literal(tokens[pos].location, None)
         )
 
     parsed = parse_expression(top_level_call=True)

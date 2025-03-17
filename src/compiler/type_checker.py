@@ -35,10 +35,11 @@ def typecheck(node: ast.Expression, symtab: SymTab = top_level_SymTab) -> Type:
     retVal: Type = Unit()
     match node:
         case ast.Literal():
-            if isinstance(node.value, int):
-                retVal = Int()
-            elif isinstance(node.value, bool):
+            # print(type(node.value))
+            if isinstance(node.value, bool):
                 retVal = Bool()
+            elif isinstance(node.value, int):
+                retVal = Int()
             else:
                 retVal = Unit()
 
@@ -76,7 +77,7 @@ def typecheck(node: ast.Expression, symtab: SymTab = top_level_SymTab) -> Type:
         case ast.Branch():
             localSymtab = mkSym(symtab)
             t1 = typecheck(node.condition, localSymtab)
-            if t1 is not Bool:
+            if t1 != Bool():
                 raise Exception(
                     f"Type error at {node.condition.location}, Branch condition must be of type Bool() not {t1}"
                 )
@@ -167,5 +168,7 @@ def typecheck(node: ast.Expression, symtab: SymTab = top_level_SymTab) -> Type:
             retVal = supposed_type.return_value
 
     node.type = retVal
+
+    # print(f"node was {node}, returning {retVal}")
 
     return retVal
