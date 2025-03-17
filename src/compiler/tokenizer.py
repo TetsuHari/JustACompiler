@@ -10,8 +10,10 @@ from functools import partial
 class TokenType(Enum):
     IDENTIFIER = 1
     INT_LITERAL = 2
-    OPERATOR = 3
-    PUNCTUATION = 4
+    BOOL_LITERAL = 3
+    OPERATOR = 4
+    PUNCTUATION = 5
+    END = 6
     OTHER = 9
 
 
@@ -45,22 +47,23 @@ class Token:
 
     type: TokenType
     text: str
-    source: Location
+    location: Location
 
 
-identifierR = r"(?P<identifier>[_|a-z|A-Z][a-z|A-Z|0-9]*)"
+identifierR = r"(?P<identifier>(?:_|[a-z]|[A-Z])(?:[a-z]|[A-Z]|[0-9])*)"
 int_lit = r"(?P<int_lit>[0-9]+)"
-operator = r"(?P<operator>[==|!=|<=|>=|+|-|*|/|=|<¦>])"
-punctuation = r"(?P<punctuation>[\(|\)|\{|\}|,|\.|;])"
+bool_lit = r"(?P<bool_lit>true|false)"
+operator = r"(?P<operator>==|!=|<=|>=|\+|\-|\*|\/|=|<|>|%|or|and|not)"
+punctuation = r"(?P<punctuation>\(|\)|\{|\}|,|\.|;)"
 comment = r"\/\/.*|#.*"
 
 
 def tupleToToken(
-    row: int, line: str, tuple: tuple[str, str, str, str]
+    row: int, line: str, tuple: tuple[str, str, str, str, str]
 ) -> Optional[Token]:
-    (ident, int, oper, punct) = tuple
+    (bool, oper, ident, int, punct) = tuple
 
-    if tuple == ("", "", "", ""):
+    if tuple == ("", "", "", "", ""):
         return None
 
     if ident != "":
@@ -70,6 +73,10 @@ def tupleToToken(
     if int != "":
         tokenType = TokenType.INT_LITERAL
         tok = int
+
+    if bool != "":
+        tokenType = TokenType.BOOL_LITERAL
+        tok = bool
 
     if oper != "":
         tokenType = TokenType.OPERATOR
@@ -85,7 +92,7 @@ def tupleToToken(
 
 
 def tokenize(source_code: str) -> list[Token]:
-    regexStringList = [comment, identifierR, int_lit, operator, punctuation]
+    regexStringList = [comment, bool_lit, operator, identifierR, int_lit, punctuation]
 
     codeLines = source_code.splitlines()
 
