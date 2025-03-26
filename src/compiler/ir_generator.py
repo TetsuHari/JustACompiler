@@ -103,19 +103,23 @@ def generate_ir(
                 var_op = st.require(expr.op)
                 # Recursively emit instructions to calculate the operands.
                 var_left = visit(st, expr.left)
-                short_circuit = (
-                    expr.op == "or" and expr.left == ast.Literal(L, True, type=Bool())
-                ) or (
-                    expr.op == "and" and expr.left == ast.Literal(L, False, type=Bool())
-                )
-                if not short_circuit:
+                if expr.op == "or":
+                    if expr.left == ast.Literal(L, True, type=Bool()):
+                        var_result = var_left
+                    else:
+                        var_result = visit(st, expr.right)
+                elif expr.op == "and":
+                    if expr.left == ast.Literal(L, False, type=Bool()):
+                        var_result = var_left
+                    else:
+                        var_result = visit(st, expr.right)
+                else:
                     var_right = visit(st, expr.right)
                     # Generate variable to hold the result.
                     var_result = new_var(expr.type)
                     # Emit a Call instruction that writes to that variable.
                     ins.append(Call(loc, var_op, [var_left, var_right], var_result))
-                else:
-                    var_result = var_left
+
                 return var_result
 
             case ast.UnaryOp():
@@ -147,6 +151,7 @@ def generate_ir(
                     l_then = new_label()
                     l_otherwise = new_label()
                     l_end = new_label()
+                    var_res = new_var(expr.then.type)
 
                     var_cond = visit(st, expr.condition)
 
@@ -154,17 +159,19 @@ def generate_ir(
 
                     ins.append(l_then)
 
-                    visit(st, expr.then)
+                    var_then = visit(st, expr.then)
+                    ins.append(Copy(loc, var_then, var_res))
 
                     ins.append(Jump(loc, l_end))
 
                     ins.append(l_otherwise)
 
-                    visit(st, expr.otherwise)
+                    var_otherwise = visit(st, expr.otherwise)
+                    ins.append(Copy(loc, var_otherwise, var_res))
 
                     ins.append(l_end)
 
-                    return var_unit
+                    return var_res
 
             case ast.Loop():
                 l_check_cond = new_label()
@@ -227,6 +234,9 @@ def generate_ir(
     root_symtab = SymTab(parent=None, locals={})
     for v in root_types.keys():
         root_symtab.locals[v.name] = v
+
+    root_symtab.locals["=="] = IRVar("==")
+    root_symtab.locals["!="] = IRVar("!=")
 
     # Start visiting the AST from the root.
     var_final_result = visit(root_symtab, root_expr)

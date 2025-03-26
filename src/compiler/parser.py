@@ -107,8 +107,9 @@ def parse(tokens: list[Token]) -> ast.Expression:
             otherwise=otherwise,
         )
 
-    def parse_block() -> ast.Expression:
-        block_start = consume("{")
+    def parse_block(top_level_block: bool = False) -> ast.Expression:
+        if not top_level_block:
+            block_start = consume("{")
 
         print(f"PARSING BLOCK")
         statements: list[ast.Expression | None]
@@ -132,7 +133,8 @@ def parse(tokens: list[Token]) -> ast.Expression:
                         statements.append(ast.Literal(lookback().location, None))
                     break
 
-        consume("}")
+        if not top_level_block:
+            consume("}")
         print(f"BLOCK PARSE FINISHED")
         return ast.Block(location=block_start.location, expressions=statements)
 
@@ -207,7 +209,9 @@ def parse(tokens: list[Token]) -> ast.Expression:
                 statements: list[ast.Expression | None] = [term]
                 while top_level_call and peek().text == ";":
                     consume(";")
-                    statements.append(parse_expression(top_level_call, block_call))
+                    statements.append(
+                        parse_expression(top_level_call=False, block_call=True)
+                    )
 
                 # #print(f'Term is currently {term}, \n statements are {statements}')
 
@@ -282,7 +286,7 @@ def parse(tokens: list[Token]) -> ast.Expression:
                     case t if t.text == "var":
                         if not (top_level_call or block_call):
                             raise Exception(
-                                "Vars only supported in top level or blocks"
+                                f"Vars only supported in top level or blocks: {t.location}"
                             )
                         toReturn = parse_var()
                     case t if t.text == "{":
@@ -302,9 +306,7 @@ def parse(tokens: list[Token]) -> ast.Expression:
         #    f"On level {precedence_level} and toplevel? = {top_level_call}. \n Returning {toReturn} \n\n\n"
         # )
         return (
-            toReturn
-            if toReturn is not None
-            else ast.Literal(tokens[pos].location, None)
+            toReturn if toReturn is not None else ast.Literal(lookback().location, None)
         )
 
     parsed = parse_expression(top_level_call=True)

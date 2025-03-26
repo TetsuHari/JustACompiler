@@ -103,11 +103,11 @@ def typecheck(node: ast.Expression, symtab: SymTab = top_level_SymTab) -> Type:
 
         case ast.UnaryOp():
             expr_type = typecheck(node.parameter, symtab)
-            if node.op == "-" and expr_type != Int:
+            if node.op == "-" and expr_type != Int():
                 raise Exception(
                     f"Type Error at {node.location}, unary - expecting Int(), got {expr_type}"
                 )
-            elif node.op == "not" and expr_type != Bool:
+            elif node.op == "not" and expr_type != Bool():
                 raise Exception(
                     f"Type Error at {node.location}, unary not expecting Bool(), got {expr_type}"
                 )
